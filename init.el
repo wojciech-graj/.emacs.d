@@ -31,11 +31,15 @@
  max-mini-window-height 8
  use-package-always-ensure t)
 
-;; Mac-specific config
+;; OS-specific config
 (when (eq system-type 'darwin)
   (progn
     (setq mac-command-modifier 'super)
     (setenv "CONDA_PREFIX" "/opt/homebrew/Caskroom/miniconda/base")))
+(when (eq system-type 'gnu/linux)
+  (progn
+    (add-to-list 'exec-path "~/.cargo/bin")
+    (setenv "CONDA_PREFIX" "~/miniconda3")))
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -82,7 +86,7 @@
 ;; Modeline
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Modified from: http://amitp.blogspot.se/2011/08/emacs-custom-mode-line.html
+;; From (modified): http://amitp.blogspot.se/2011/08/emacs-custom-mode-line.html
 (defun shorten-directory (dir max-length)
   "Show up to `max-length' characters of a directory name `dir'."
   (let ((path (reverse (split-string (abbreviate-file-name dir) "/")))
@@ -145,9 +149,10 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Diminish
-(use-package
- diminish
- :config (diminish 'eldoc-mode) (diminish 'visual-line-mode))
+(use-package diminish
+  :config
+  (diminish 'eldoc-mode)
+  (diminish 'visual-line-mode))
 
 ;; Miscellaneous keybindings
 (require 'bind-key)
@@ -181,9 +186,6 @@
 ;; Shebang line in scripts
 (setq executable-prefix-env t)
 
-;; Bind comment-dwim
-(bind-key* "C-c /" #'comment-dwim)
-
 ;; Closing brackets
 (electric-pair-mode)
 
@@ -214,187 +216,191 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Org
-(use-package
- org
- :mode ("\\.org\\'" . org-mode)
- :custom
- (org-hide-leading-stars t)
- (org-hide-emphasis-markers t)
- (org-startup-with-inline-images t)
- (org-image-actual-width nil)
- :config
- (org-babel-do-load-languages
-  'org-babel-load-languages '((shell . t))))
+(use-package org
+  :mode ("\\.org\\'" . org-mode)
+  :custom
+  (org-hide-leading-stars t)
+  (org-hide-emphasis-markers t)
+  (org-startup-with-inline-images t)
+  (org-image-actual-width nil)
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages '((shell . t) (sql . t))))
 
 ;; parenthesis highlighting
-(use-package
- paren
- :custom
- (show-paren-delay 0)
- (show-paren-style 'parenthesis)
- :config (show-paren-mode 1))
+(use-package paren
+  :custom
+  (show-paren-delay 0)
+  (show-paren-style 'parenthesis)
+  :config (show-paren-mode 1))
 
 ;; Completion
-(use-package
- dabbrev
- :bind (("C-/" . #'dabbrev-completion))
- :custom (dabbrev-case-replace nil))
+(use-package dabbrev
+  :bind (("C-/" . #'dabbrev-completion))
+  :custom (dabbrev-case-replace nil))
 
 ;; Dim un-selected windows
-(use-package
- dimmer
- :custom (dimmer-fraction 0.2)
- :config (dimmer-mode))
+(use-package dimmer
+  :custom (dimmer-fraction 0.2)
+  :config (dimmer-mode))
 
-(use-package
- centered-window
- :diminish
- :custom (cwm-centered-window-width 120) (centered-window-mode t))
+(use-package centered-window
+  :diminish
+  :custom
+  (cwm-centered-window-width 120)
+  (centered-window-mode t))
 
-(use-package
- which-key
- :diminish
- :custom (which-key-enable-extended-define-key t)
- :config
- (which-key-mode)
- (which-key-setup-minibuffer))
+(use-package which-key
+  :diminish
+  :custom (which-key-enable-extended-define-key t)
+  :config
+  (which-key-mode)
+  (which-key-setup-minibuffer))
 
-(use-package
- undo-tree
- :diminish
- :bind (("C-c _" . undo-tree-visualize))
- :custom
- (undo-tree-auto-save-history t)
- (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
- (undo-tree-enable-undo-in-region nil)
- (undo-limit 320000)
- (undo-strong-limit 480000)
- (undo-tree-visualizer-timestamps t)
- (undo-tree-visualizer-diff t)
- :config (global-undo-tree-mode 1))
+(use-package undo-tree
+  :diminish
+  :bind (("C-c _" . undo-tree-visualize))
+  :custom
+  (undo-tree-auto-save-history t)
+  (undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo")))
+  (undo-tree-enable-undo-in-region nil)
+  (undo-limit 320000)
+  (undo-strong-limit 480000)
+  (undo-tree-visualizer-timestamps t)
+  (undo-tree-visualizer-diff t)
+  :config (global-undo-tree-mode 1))
 
 ;; Recent buffers in a new Emacs session
-(use-package
- recentf
- :diminish
- :custom
- (recentf-auto-cleanup 'never)
- (recentf-max-saved-items 1000)
- (recentf-save-file (concat user-emacs-directory ".recentf"))
- :config (recentf-mode t))
+(use-package recentf
+  :diminish
+  :custom
+  (recentf-auto-cleanup 'never)
+  (recentf-max-saved-items 1000)
+  (recentf-save-file (concat user-emacs-directory ".recentf"))
+  :config (recentf-mode t))
 
-(use-package wgrep :custom wgrep-auto-save-buffer t)
+(use-package wgrep
+  :custom (wgrep-auto-save-buffer t))
 
-(use-package
- dashboard
- :custom
- (dashboard-center-content t)
- (dashboard-startup-banner `logo)
- (dashboard-items '((recents . 16)))
- :config (dashboard-setup-startup-hook))
+(use-package dashboard
+  :custom
+  (dashboard-center-content t)
+  (dashboard-startup-banner `logo)
+  (dashboard-items '((recents . 16)))
+  :config (dashboard-setup-startup-hook))
 
 ;; PDF
-(use-package
- pdf-tools
- :mode ("\\.pdf\\'" . pdf-view-mode)
- :hook
- (pdf-view-mode . (lambda () (display-line-numbers-mode -1)))
- :config
- (setq-default pdf-view-display-size 'fit-page)
- (pdf-tools-install :no-query))
+(use-package pdf-tools
+  :mode ("\\.pdf\\'" . pdf-view-mode)
+  :hook (pdf-view-mode . (lambda () (display-line-numbers-mode -1)))
+  :config
+  (setq-default pdf-view-display-size 'fit-page)
+  (pdf-tools-install :no-query))
 
-(use-package
- company
- :diminish
- :config
- (global-company-mode t)
- (define-key company-active-map (kbd "<return>") nil)
- (define-key company-active-map (kbd "RET") nil)
- (define-key
-  company-active-map (kbd "TAB") #'company-complete-selection)
- (define-key
-  company-active-map (kbd "<tab>") #'company-complete-selection)
- (define-key company-active-map (kbd "SPC") nil))
+(use-package company
+  :diminish
+  :config
+  (global-company-mode t)
+  (define-key company-active-map (kbd "<return>") nil)
+  (define-key company-active-map (kbd "RET") nil)
+  (define-key
+   company-active-map (kbd "TAB") #'company-complete-selection)
+  (define-key
+   company-active-map (kbd "<tab>") #'company-complete-selection)
+  (define-key company-active-map (kbd "SPC") nil))
 
 (use-package citeproc)
 
-(use-package flycheck :hook (java-mode . flycheck-mode) :defer t)
+(use-package flycheck
+  :hook (java-mode . flycheck-mode)
+  :defer t)
 
 ;; indentation markers
-(use-package
- highlight-indent-guides
- :diminish
- :hook
- (prog-mode
-  .
-  (lambda ()
-    (unless (derived-mode-p 'emacs-lisp-mode)
-      (highlight-indent-guides-mode))))
- :custom
- (highlight-indent-guides-method 'character)
- (highlight-indent-guides-character ?|))
-
-(use-package lsp-java :after lsp)
+(use-package highlight-indent-guides
+  :diminish
+  :hook
+  (prog-mode
+   .
+   (lambda ()
+     (unless (derived-mode-p 'emacs-lisp-mode)
+       (highlight-indent-guides-mode))))
+  :custom
+  (highlight-indent-guides-method 'character)
+  (highlight-indent-guides-character ?|))
 
 ;; lsp
-(use-package
- lsp-mode
- :hook ((java-mode c-mode rust-mode) . lsp-deferred)
- :commands lsp
- :custom
- (lsp-auto-guess-root t)
- (lsp-log-io nil)
- (lsp-restart 'auto-restart)
- (lsp-enable-symbol-highlighting nil)
- (lsp-enable-on-type-formatting nil)
- (lsp-signature-auto-activate nil)
- (lsp-signature-render-documentation nil)
- (lsp-modeline-code-actions-enable nil)
- (lsp-modeline-diagnostics-enable nil)
- (lsp-headerline-breadcrumb-enable nil)
- (lsp-semantic-tokens-enable nil)
- (lsp-enable-folding nil)
- (lsp-enable-imenu nil)
- (read-process-output-max (* 1024 1024)) ;; 1MB
- (lsp-idle-delay 0.5)
- (lsp-lens-enable nil)
- (lsp-inlay-hint-enable t)
+(use-package lsp-mode
+  :hook ((java-mode c-mode c++-mode rust-mode) . lsp-deferred)
+  :commands lsp
+  :custom
+  (lsp-auto-guess-root t)
+  (lsp-log-io nil)
+  (lsp-restart 'auto-restart)
+  (lsp-enable-symbol-highlighting nil)
+  (lsp-enable-on-type-formatting nil)
+  (lsp-signature-auto-activate nil)
+  (lsp-signature-render-documentation nil)
+  (lsp-modeline-code-actions-enable nil)
+  (lsp-modeline-diagnostics-enable nil)
+  (lsp-headerline-breadcrumb-enable nil)
+  (lsp-semantic-tokens-enable nil)
+  (lsp-enable-folding nil)
+  (lsp-enable-imenu nil)
+  (read-process-output-max (* 1024 1024)) ;; 1MB
+  (lsp-idle-delay 0.5)
+  (lsp-lens-enable nil)
+  (lsp-inlay-hint-enable t)
 
- ;; C
- (lsp-clients-clangd-args '("--compile-commands-dir=./builddir"))
+  ;; C
+  (lsp-clients-clangd-args '("--compile-commands-dir=./builddir"))
 
- ;; Java
- (lsp-java-vmargs
-  `("-noverify" "-Xmx1G" "-XX:+UseG1GC" "-XX:+UseStringDeduplication"
-    ,(concat
-      "-javaagent:"
-      (expand-file-name ".local/share/java/lombok.jar"
-                        (getenv "HOME")))
-    ,(concat
-      "-Xbootclasspath/a:"
-      (expand-file-name ".local/share/java/lombok.jar"
-                        (getenv "HOME")))))
+  ;; Java
+  (lsp-java-vmargs
+   `("-noverify" "-Xmx1G" "-XX:+UseG1GC" "-XX:+UseStringDeduplication"
+     ,(concat
+       "-javaagent:"
+       (expand-file-name ".local/share/java/lombok.jar"
+                         (getenv "HOME")))
+     ,(concat
+       "-Xbootclasspath/a:"
+       (expand-file-name ".local/share/java/lombok.jar"
+                         (getenv "HOME")))))
 
- ;; Rust
- (lsp-rust-analyzer-display-lifetime-elision-hints-enable
-  "skip_trivial")
- (lsp-rust-analyzer-display-chaining-hints t)
- (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names
-  nil)
- (lsp-rust-analyzer-display-closure-return-type-hints t)
- (lsp-rust-analyzer-display-parameter-hints nil)
- (lsp-rust-analyzer-display-reborrow-hints nil)
+  ;; Rust
+  (lsp-rust-analyzer-display-lifetime-elision-hints-enable
+   "skip_trivial")
+  (lsp-rust-analyzer-display-chaining-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names
+   nil)
+  (lsp-rust-analyzer-display-closure-return-type-hints t)
+  (lsp-rust-analyzer-display-parameter-hints nil)
+  (lsp-rust-analyzer-display-reborrow-hints nil)
 
- ;; Python
- (lsp-pylsp-plugins-yapf-enabled t)
- (lsp-pylsp-plugins-mypy-enabled t)
- (lsp-pylsp-plugins-pycodestyle-enabled nil)
- (lsp-pylsp-plugins-mccabe-enabled nil)
- (lsp-pylsp-plugins-isort-enabled t)
- (lsp-pylsp-plugins-rope-autoimport-code-actions-enabled t)
- (lsp-pylsp-plugins-rope-autoimport-completions-enabled nil)
- (lsp-pylsp-plugins-rope-autoimport-enabled t)
- (lsp-pylsp-plugins-rope-completion-enabled nil))
+  ;; Python
+  (lsp-pylsp-plugins-yapf-enabled t)
+  (lsp-pylsp-plugins-mypy-enabled t)
+  (lsp-pylsp-plugins-pycodestyle-enabled nil)
+  (lsp-pylsp-plugins-mccabe-enabled nil)
+  (lsp-pylsp-plugins-isort-enabled t)
+  (lsp-pylsp-plugins-rope-autoimport-code-actions-enabled t)
+  (lsp-pylsp-plugins-rope-autoimport-completions-enabled nil)
+  (lsp-pylsp-plugins-rope-autoimport-enabled t)
+  (lsp-pylsp-plugins-rope-completion-enabled nil)
+  :config
+  ;; Optional config for Java from Sdkman
+  ;; REMEMBER: fill out <USERNAME>
+  (when nil
+    (progn
+      (setq
+       lsp-java-configuration-runtimes
+       '[(:name
+          "JavaSE-15"
+          :path "/home/<USERNAME>/.sdkman/candidates/java/15.0.2-open"
+          :default t)]
+       lsp-java-java-path "/home/<USERNAME>/.sdkman/candidates/java/15.0.2-open/bin/java")
+      (setenv
+       "JAVA_HOME"
+       "/home/<USERNAME>/.sdkman/candidates/java/15.0.2-open"))))
 
 ;; Custom LSP modeline print function without process id
 ;; From: https://github.com/emacs-lsp/lsp-mode/discussions/3729
@@ -471,22 +477,19 @@
   (setq indent-tabs-mode t)
   (enable-tabs)
   (setq tab-width 8))
-(use-package
- cc-mode
- :hook (c-mode . hook-c)
- :custom
- (c-default-style "linux")
- (c-indent-level 8)
- (c-basic-offset 8)
- :config (c-set-offset 'arglist-cont-nonempty '+))
+(use-package cc-mode
+  :hook ((c-mode . hook-c) (c++-mode . hook-c))
+  :custom
+  (c-default-style "linux")
+  (c-indent-level 8)
+  (c-basic-offset 8)
+  :config (c-set-offset 'arglist-cont-nonempty '+))
 
 ;; Python
-(use-package
- pyvenv
- :config
- (setenv "WORKON_HOME"
-         (concat (getenv "CONDA_PREFIX") "/envs"))
- (pyvenv-mode t))
+(use-package pyvenv
+  :config
+  (setenv "WORKON_HOME" (concat (getenv "CONDA_PREFIX") "/envs"))
+  (pyvenv-mode t))
 (defun hook-py ()
   (setq indent-tabs-mode nil)
   (enable-tabs)
@@ -504,32 +507,32 @@
   (setq indent-tabs-mode nil)
   (enable-tabs)
   (setq tab-width 3))
-(use-package
- lua-mode
- :hook (lua-mode . hook-lua)
- :custom
- (lua-indent-nested-block-content-align nil)
- (lua-indent-close-paren-align nil)
- (lua-indent-offset 3))
+(use-package lua-mode
+  :hook (lua-mode . hook-lua)
+  :custom
+  (lua-indent-nested-block-content-align nil)
+  (lua-indent-close-paren-align nil)
+  (lua-indent-offset 3))
 
 ;; Elisp
-(use-package
- elisp-autofmt
- :commands (elisp-autofmt-mode elisp-autofmt-buffer)
- :hook (emacs-lisp-mode . elisp-autofmt-mode))
+(use-package elisp-autofmt
+  :commands (elisp-autofmt-mode elisp-autofmt-buffer)
+  :hook (emacs-lisp-mode . elisp-autofmt-mode))
 (add-hook 'emacs-lisp-mode-hook 'disable-tabs)
 
 ;; SQL
-(use-package
- sqlformat
- :hook (sql-mode . sqlformat-on-save-mode)
- :custom (sqlformat-command 'pgformatter)
- (sqlformat-args
-  '("--type-case=2" "--function-case=1" "--no-space-function"
-    "--placeholder=%\\([a-zA-Z_]+\\)s" ;; Psycopg parameters: %(...)s
-    )))
+(use-package sqlformat
+  :hook (sql-mode . sqlformat-on-save-mode)
+  :custom
+  (sqlformat-command 'pgformatter)
+  (sqlformat-args
+   '("--type-case=2" "--function-case=1" "--no-space-function"
+     "--placeholder=%\\([a-zA-Z_]+\\)s" ;; Psycopg parameters: %(...)s
+     )))
 
 ;; Java
+(use-package lsp-java
+  :after lsp)
 (defun hook-java ()
   (setq indent-tabs-mode nil)
   (enable-tabs)
@@ -538,26 +541,27 @@
 (add-hook 'java-mode-hook 'hook-java)
 
 ;; Rust
-(use-package cargo :diminish :hook (rust-mode . cargo-minor-mode))
-(use-package
- rust-mode
- :hook (rust-mode . hook-rust)
- :bind
- (:map
-  rust-mode-map
-  (("DEL" . backward-delete-char-tablevel)
-   ([?\t] . company-indent-or-complete-common)))
- :custom
- (rust-format-on-save t)
- (rust-format-show-buffer nil)
- (rust-format-goto-problem nil))
+(use-package cargo
+  :diminish
+  :hook (rust-mode . cargo-minor-mode))
+(use-package rust-mode
+  :hook (rust-mode . hook-rust)
+  :bind
+  (:map
+   rust-mode-map
+   (("DEL" . backward-delete-char-tablevel)
+    ([?\t] . company-indent-or-complete-common)))
+  :custom
+  (rust-format-on-save t)
+  (rust-format-show-buffer nil)
+  (rust-format-goto-problem nil))
 (defun hook-rust ()
   (setq indent-tabs-mode nil)
   (disable-tabs)
   (setq tab-width 4)
   (setq c-basic-offset 4))
 
-;; https://github.com/scturtle/dotfiles/blob/f1e087e247876dbae20d56f944a1e96ad6f31e0b/doom_emacs/.doom.d/config.el#L74-L85
+;; From: https://github.com/scturtle/dotfiles/blob/f1e087e247876dbae20d56f944a1e96ad6f31e0b/doom_emacs/.doom.d/config.el#L74-L85
 (cl-defmethod lsp-clients-extract-signature-on-hover
     (contents (_server-id (eql rust-analyzer)))
   (-let* (((&hash "value") contents)
@@ -575,3 +579,7 @@
             (--map (s-trim it) it)
             (s-join " " it))))
     (lsp--render-element (concat "```rust\n" sig "\n```"))))
+
+;; Local variables:
+;; elisp-autofmt-load-packages-local: ("use-package")
+;; end:
