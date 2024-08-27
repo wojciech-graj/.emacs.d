@@ -26,20 +26,19 @@
  make-backup-files nil
  auto-save-default nil
  create-lockfiles nil
- custom-file (make-temp-name "/tmp/")
+ custom-file "~/.emacs.d/.emacs-custom.el"
  custom-safe-themes t
  max-mini-window-height 8
  use-package-always-ensure t)
 
 ;; OS-specific config
-(when (eq system-type 'darwin)
-  (progn
-    (setq mac-command-modifier 'super)
-    (setenv "CONDA_PREFIX" "/opt/homebrew/Caskroom/miniconda/base")))
-(when (eq system-type 'gnu/linux)
-  (progn
-    (add-to-list 'exec-path "~/.cargo/bin")
-    (setenv "CONDA_PREFIX" "~/miniconda3")))
+(cond
+ ((eq system-type 'darwin)
+  (setq mac-command-modifier 'super)
+  (setenv "CONDA_PREFIX" "/opt/homebrew/Caskroom/miniconda/base"))
+ ((eq system-type 'gnu/linux)
+  (add-to-list 'exec-path "~/.cargo/bin")
+  (setenv "CONDA_PREFIX" "~/miniconda3")))
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -61,6 +60,11 @@
 (prefer-coding-system 'utf-8-unix)
 (delete-selection-mode t)
 (global-hl-line-mode t)
+
+(unless (file-exists-p custom-file)
+  (with-temp-buffer
+    (write-file custom-file)))
+(load custom-file)
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Visuals
@@ -201,7 +205,7 @@
 ;; Bind notes file
 (defun open-notes-file ()
   (interactive)
-  (find-file "~/.emacs.d/notes.org"))
+  (find-file "~/.emacs.d/notes/notes.org"))
 (bind-key "C-c n" #'open-notes-file)
 
 ;; Bind undo
@@ -212,10 +216,11 @@
 (cua-mode t)
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Packages
+;; Org
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Org
+(require 'ox-publish)
+
 (use-package org
   :mode ("\\.org\\'" . org-mode)
   :custom
@@ -223,9 +228,89 @@
   (org-hide-emphasis-markers t)
   (org-startup-with-inline-images t)
   (org-image-actual-width nil)
+  (org-export-allow-bind-keywords t)
+  (org-plantuml-jar-path "~/.emacs.d/plantuml.jar")
+  (org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
+  (org-publish-project-alist
+   '(("orgfiles"
+      :recursive t
+      :base-directory "~/Documents/code/website"
+      :publishing-function org-html-publish-to-html
+      :publishing-directory "~/Documents/code/website-out"
+      :section-numbers nil
+      :with-toc nil
+      :with-title nil
+      :time-stamp-file nil
+      :html-head-include-default-style nil
+      :html-head "<link rel=\"stylesheet\" href=\"/style.css\" type=\"text/css\"/>")
+
+     ("other"
+      :recursive t
+      :base-directory "~/Documents/code/website"
+      :base-extension "svg\\|css"
+      :publishing-directory "~/Documents/code/website-out"
+      :publishing-function org-publish-attachment)
+     ("website" :components ("orgfiles" "other"))))
   :config
   (org-babel-do-load-languages
-   'org-babel-load-languages '((shell . t) (sql . t))))
+   'org-babel-load-languages '((shell . t) (sql . t) (plantuml . t)))
+  (defun my-org-confirm-babel-evaluate (lang body)
+    (not (string= lang "plantuml"))))
+
+(use-package htmlize
+  :custom (org-html-htmlize-output-type 'css)
+  :config
+  ;; From: https://github.com/hniksic/emacs-htmlize/issues/45#issuecomment-1535041865
+  (setq-default htmlize-ignore-background t)
+  (defadvice htmlize-face-background
+      (around htmlize-ignore-background activate)
+    (unless htmlize-ignore-background
+      ad-do-it)))
+
+;; From: https://www.cyberaesthete.com/blog/00000000.html
+(defun org-html-htmlize-generate-css ()
+  "Create the CSS for all font definitions in the current Emacs session.
+Use this to create face definitions in your CSS style file that can then
+be used by code snippets transformed by htmlize.
+This command just produces a buffer that contains class definitions for all
+faces used in the current Emacs session.  You can copy and paste the ones you
+need into your CSS file.
+
+If you then set `org-html-htmlize-output-type' to `css', calls
+to the function `org-html-htmlize-region-for-paste' will
+produce code that uses these same face definitions."
+  (interactive)
+  (unless (require 'htmlize nil t)
+    (error "htmlize library missing.  Aborting"))
+  (and (get-buffer "*html*") (kill-buffer "*html*"))
+  (let ((current-buffer (buffer-string)))
+    (with-temp-buffer
+      (insert current-buffer)
+      (let ((fl (face-list))
+            (htmlize-css-name-prefix "org-")
+            (htmlize-output-type 'css)
+            f
+            i)
+        (while (setq
+                f (pop fl)
+                i (and f (face-attribute f :inherit)))
+          (when (and (symbolp f) (or (not i) (not (listp i))))
+            (insert (org-add-props (copy-sequence "1") nil 'face f))))
+        (htmlize-region (point-min) (point-max)))))
+  (pop-to-buffer-same-window "*html*")
+  (goto-char (point-min))
+  (when (re-search-forward "<style" nil t)
+    (delete-region (point-min) (match-beginning 0)))
+  (when (re-search-forward "</style>" nil t)
+    (delete-region (1+ (match-end 0)) (point-max)))
+  (beginning-of-line 1)
+  (when (looking-at " +")
+    (replace-match ""))
+  (goto-char (point-min)))
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Packages
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; parenthesis highlighting
 (use-package paren
