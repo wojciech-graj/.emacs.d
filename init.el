@@ -397,8 +397,11 @@ produce code that uses these same face definitions."
 (use-package citeproc)
 
 (use-package flycheck
-  :hook (java-mode . flycheck-mode)
-  :defer t)
+  :hook (java-mode . flycheck-mode))
+
+(use-package flyspell
+  :diminish
+  :hook ((text-mode . flyspell-mode) (prog-mode . flyspell-prog-mode)))
 
 ;; indentation markers
 (use-package highlight-indent-guides
