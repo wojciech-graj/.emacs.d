@@ -590,6 +590,9 @@ produce code that uses these same face definitions."
 (add-hook 'python-mode-hook 'hook-py)
 (setq-default python-indent-offset 4)
 
+;; Cython
+(use-package cython-mode)
+
 ;; Lua
 (defun hook-lua ()
   (setq indent-tabs-mode nil)
