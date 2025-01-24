@@ -247,7 +247,7 @@
      ("other"
       :recursive t
       :base-directory "~/Documents/code/website"
-      :base-extension "svg\\|css"
+      :base-extension "svg\\|css\\|asc"
       :publishing-directory "~/Documents/code/website-out"
       :publishing-function org-publish-attachment)
      ("website" :components ("orgfiles" "other"))))
