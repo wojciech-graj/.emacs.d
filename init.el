@@ -60,6 +60,7 @@
 (prefer-coding-system 'utf-8-unix)
 (delete-selection-mode t)
 (global-hl-line-mode t)
+(global-so-long-mode t)
 
 (unless (file-exists-p custom-file)
   (with-temp-buffer
@@ -151,6 +152,11 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Misc.
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package exec-path-from-shell
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
 
 ;; Diminish
 (use-package diminish
@@ -416,9 +422,14 @@ produce code that uses these same face definitions."
   (highlight-indent-guides-method 'character)
   (highlight-indent-guides-character ?|))
 
+(use-package lsp-haskell)
+
 ;; lsp
 (use-package lsp-mode
-  :hook ((java-mode c-mode c++-mode rust-mode) . lsp-deferred)
+  :hook
+  ((java-mode
+    c-mode c++-mode rust-mode haskell-mode haskell-literate-mode)
+   . lsp-deferred)
   :commands lsp
   :custom
   (lsp-auto-guess-root t)
@@ -444,15 +455,10 @@ produce code that uses these same face definitions."
 
   ;; Java
   (lsp-java-vmargs
-   `("-noverify" "-Xmx1G" "-XX:+UseG1GC" "-XX:+UseStringDeduplication"
-     ,(concat
-       "-javaagent:"
-       (expand-file-name ".local/share/java/lombok.jar"
-                         (getenv "HOME")))
-     ,(concat
-       "-Xbootclasspath/a:"
-       (expand-file-name ".local/share/java/lombok.jar"
-                         (getenv "HOME")))))
+   `("-noverify"
+     "-Xmx1G"
+     "-XX:+UseG1GC"
+     "-XX:+UseStringDeduplication"))
 
   ;; Rust
   (lsp-rust-analyzer-display-lifetime-elision-hints-enable
@@ -476,19 +482,22 @@ produce code that uses these same face definitions."
   (lsp-pylsp-plugins-rope-completion-enabled nil)
   :config
   ;; Optional config for Java from Sdkman
-  ;; REMEMBER: fill out <USERNAME>
   (when nil
     (progn
-      (setq
-       lsp-java-configuration-runtimes
-       '[(:name
-          "JavaSE-15"
-          :path "/home/<USERNAME>/.sdkman/candidates/java/15.0.2-open"
-          :default t)]
-       lsp-java-java-path "/home/<USERNAME>/.sdkman/candidates/java/15.0.2-open/bin/java")
-      (setenv
-       "JAVA_HOME"
-       "/home/<USERNAME>/.sdkman/candidates/java/15.0.2-open"))))
+      (setq lsp-java-configuration-runtimes
+            '[(:name
+               "JavaSE-21"
+               :path
+               (expand-file-name ".sdkman/candidates/java/21.0.2-open"
+                                 (getenv "HOME"))
+               :default t)]
+            lsp-java-java-path
+            (expand-file-name
+             ".sdkman/candidates/java/21.0.2-open/bin/java"
+             (getenv "HOME")))
+      (setenv "JAVA_HOME"
+              (expand-file-name ".sdkman/candidates/java/21.0.2-open"
+                                (getenv "HOME"))))))
 
 ;; Custom LSP modeline print function without process id
 ;; From: https://github.com/emacs-lsp/lsp-mode/discussions/3729
@@ -651,6 +660,12 @@ produce code that uses these same face definitions."
   (disable-tabs)
   (setq tab-width 4)
   (setq c-basic-offset 4))
+
+;; Haskell
+(use-package haskell-mode)
+(use-package ormolu
+  :diminish
+  :hook (haskell-mode . ormolu-format-on-save-mode))
 
 ;; From: https://github.com/scturtle/dotfiles/blob/f1e087e247876dbae20d56f944a1e96ad6f31e0b/doom_emacs/.doom.d/config.el#L74-L85
 (cl-defmethod lsp-clients-extract-signature-on-hover
