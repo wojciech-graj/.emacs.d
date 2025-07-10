@@ -78,12 +78,17 @@
       nil
     t))
 
-(when (window-system)
-  (cond
-   ((font-exists-p "Courier Prime")
-    (set-frame-font "Courier Prime:spacing=100:size=20" nil t))
-   ((font-exists-p "Courier New")
-    (set-frame-font "Courier New:spacing=100:size=20" nil t))))
+(let* ((font-size
+        (if (string-match-p "laptop" (system-name))
+            32
+          20))
+       (font-cmd (format ":spacing=100:size=%d" font-size)))
+  (when (window-system)
+    (cond
+     ((font-exists-p "Courier Prime")
+      (set-frame-font (concat "Courier Prime" font-cmd) nil t))
+     ((font-exists-p "Courier New")
+      (set-frame-font (concat "Courier New" font-cmd) nil t)))))
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
@@ -240,9 +245,9 @@
   (org-publish-project-alist
    '(("orgfiles"
       :recursive t
-      :base-directory "~/Documents/code/website"
+      :base-directory "~/Documents/code/w-graj.net"
       :publishing-function org-html-publish-to-html
-      :publishing-directory "~/Documents/code/website-out"
+      :publishing-directory "~/Documents/code/out.w-graj.net"
       :section-numbers nil
       :with-toc nil
       :with-title nil
@@ -252,9 +257,9 @@
 
      ("other"
       :recursive t
-      :base-directory "~/Documents/code/website"
+      :base-directory "~/Documents/code/w-graj.net"
       :base-extension "svg\\|css\\|asc"
-      :publishing-directory "~/Documents/code/website-out"
+      :publishing-directory "~/Documents/code/out.w-graj.net"
       :publishing-function org-publish-attachment)
      ("website" :components ("orgfiles" "other"))))
   :config
@@ -464,11 +469,8 @@ produce code that uses these same face definitions."
   (lsp-rust-analyzer-display-lifetime-elision-hints-enable
    "skip_trivial")
   (lsp-rust-analyzer-display-chaining-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names
-   nil)
   (lsp-rust-analyzer-display-closure-return-type-hints t)
-  (lsp-rust-analyzer-display-parameter-hints nil)
-  (lsp-rust-analyzer-display-reborrow-hints nil)
+  (lsp-rust-analyzer-display-parameter-hints t)
 
   ;; Python
   (lsp-pylsp-plugins-yapf-enabled t)
@@ -670,21 +672,21 @@ produce code that uses these same face definitions."
 ;; From: https://github.com/scturtle/dotfiles/blob/f1e087e247876dbae20d56f944a1e96ad6f31e0b/doom_emacs/.doom.d/config.el#L74-L85
 (cl-defmethod lsp-clients-extract-signature-on-hover
     (contents (_server-id (eql rust-analyzer)))
-  (-let* (((&hash "value") contents)
-          (groups
-           (--partition-by (s-blank? it) (s-lines (s-trim value))))
-          (sig_group
-           (if (s-equals? "```rust" (car (-third-item groups)))
-               (-third-item groups)
-             (car groups)))
-          (sig
-           (-->
-            sig_group
-            (--drop-while (s-equals? "```rust" it) it)
-            (--take-while (not (s-equals? "```" it)) it)
-            (--map (s-trim it) it)
-            (s-join " " it))))
-    (lsp--render-element (concat "```rust\n" sig "\n```"))))
+  (-let*
+   (((&hash "value") contents)
+    (groups (--partition-by (s-blank? it) (s-lines (s-trim value))))
+    (sig_group
+     (if (s-equals? "```rust" (car (-third-item groups)))
+         (-third-item groups)
+       (car groups)))
+    (sig
+     (-->
+      sig_group
+      (--drop-while (s-equals? "```rust" it) it)
+      (--take-while (not (s-equals? "```" it)) it)
+      (--map (s-trim it) it)
+      (s-join " " it))))
+   (lsp--render-element (concat "```rust\n" sig "\n```"))))
 
 ;; Local variables:
 ;; elisp-autofmt-load-packages-local: ("use-package")
