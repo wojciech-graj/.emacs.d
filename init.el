@@ -6,7 +6,7 @@
 
 ;; Use with `use-package-report` for benchmarking init.el
 (when nil
- (setq use-package-compute-statistics t))
+  (setq use-package-compute-statistics t))
 
 (setq
  gc-cons-threshold (* 16 (* 1024 1024))
@@ -162,8 +162,7 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package exec-path-from-shell
-  :custom
-  (exec-path-from-shell-arguments '("-l"))
+  :custom (exec-path-from-shell-arguments '("-l"))
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
@@ -673,12 +672,6 @@ produce code that uses these same face definitions."
   (setq tab-width 4)
   (setq c-basic-offset 4))
 
-;; Haskell
-(use-package haskell-mode)
-(use-package ormolu
-  :diminish
-  :hook (haskell-mode . ormolu-format-on-save-mode))
-
 ;; From: https://github.com/scturtle/dotfiles/blob/f1e087e247876dbae20d56f944a1e96ad6f31e0b/doom_emacs/.doom.d/config.el#L74-L85
 (cl-defmethod lsp-clients-extract-signature-on-hover
     (contents (_server-id (eql rust-analyzer)))
@@ -697,6 +690,18 @@ produce code that uses these same face definitions."
       (--map (s-trim it) it)
       (s-join " " it))))
    (lsp--render-element (concat "```rust\n" sig "\n```"))))
+
+;; Haskell
+(use-package haskell-mode)
+(use-package ormolu
+  :diminish
+  :hook (haskell-mode . ormolu-format-on-save-mode))
+
+;; YAML
+(use-package yaml-mode)
+
+;; Docker
+(use-package dockerfile-mode)
 
 ;; Local variables:
 ;; elisp-autofmt-load-packages-local: ("use-package")
