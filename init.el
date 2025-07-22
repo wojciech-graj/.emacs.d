@@ -261,7 +261,12 @@
   (org-babel-do-load-languages
    'org-babel-load-languages '((shell . t) (sql . t) (plantuml . t)))
   (defun my-org-confirm-babel-evaluate (lang body)
-    (not (string= lang "plantuml"))))
+    (not (string= lang "plantuml")))
+  (defun my-org-html-wrap-tables
+      (orig-fun table contents info &rest _)
+    (format "<div class=\"table-container\">\n%s\n</div>"
+            (funcall orig-fun table contents info)))
+  (advice-add 'org-html-table :around #'my-org-html-wrap-tables))
 
 (use-package htmlize
   :custom (org-html-htmlize-output-type 'css)
