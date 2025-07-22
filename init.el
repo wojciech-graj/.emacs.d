@@ -4,6 +4,10 @@
 ;; Initial setup
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Use with `use-package-report` for benchmarking init.el
+(when nil
+ (setq use-package-compute-statistics t))
+
 (setq
  gc-cons-threshold (* 16 (* 1024 1024))
  ring-bell-function 'ignore
@@ -37,7 +41,6 @@
   (setq mac-command-modifier 'super)
   (setenv "CONDA_PREFIX" "/opt/homebrew/Caskroom/miniconda/base"))
  ((eq system-type 'gnu/linux)
-  (add-to-list 'exec-path "~/.cargo/bin")
   (setenv "CONDA_PREFIX" "~/miniconda3")))
 
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -80,7 +83,7 @@
 
 (let* ((font-size
         (if (string-match-p "laptop" (system-name))
-            32
+            36
           20))
        (font-cmd (format ":spacing=100:size=%d" font-size)))
   (when (window-system)
@@ -159,6 +162,8 @@
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package exec-path-from-shell
+  :custom
+  (exec-path-from-shell-arguments '("-l"))
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
