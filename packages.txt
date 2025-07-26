@@ -1,0 +1,13 @@
+autoconf
+automake
+default-jre
+gcc
+graphviz
+ispell-dictionary
+ispell
+libpng-dev
+libpoppler-dev
+libpoppler-glib-dev
+libz-dev
+make
+pkg-config

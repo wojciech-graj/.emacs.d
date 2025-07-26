@@ -217,12 +217,6 @@
   (find-file "~/.emacs.d/init.el"))
 (bind-key "C-c e" #'open-init-file)
 
-;; Bind notes file
-(defun open-notes-file ()
-  (interactive)
-  (find-file "~/.emacs.d/notes/notes.org"))
-(bind-key "C-c n" #'open-notes-file)
-
 ;; Bind undo
 (global-unset-key "\C-z")
 (global-set-key "\C-z" 'advertised-undo)
@@ -236,6 +230,13 @@
 
 (require 'ox-publish)
 
+(setq wgraj/org-publish-base-directory
+      (or (getenv "WEBSITE_BASE_DIRECTORY")
+          "~/Documents/code/w-graj.net/src")
+      wgraj/org-publish-publishing-directory
+      (or (getenv "WEBSITE_PUBLISHING_DIRECTORY")
+          "~/Documents/code/out.w-graj.net"))
+
 (use-package org
   :mode ("\\.org\\'" . org-mode)
   :custom
@@ -244,14 +245,14 @@
   (org-startup-with-inline-images t)
   (org-image-actual-width nil)
   (org-export-allow-bind-keywords t)
-  (org-plantuml-jar-path "~/.emacs.d/plantuml.jar")
+  (org-plantuml-jar-path "/usr/share/java/plantuml-1.2025.4.jar")
   (org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
   (org-publish-project-alist
-   '(("orgfiles"
+   `(("orgfiles"
       :recursive t
-      :base-directory "~/Documents/code/w-graj.net"
+      :base-directory ,wgraj/org-publish-base-directory
       :publishing-function org-html-publish-to-html
-      :publishing-directory "~/Documents/code/out.w-graj.net"
+      :publishing-directory ,wgraj/org-publish-publishing-directory
       :section-numbers nil
       :with-toc nil
       :with-title nil
@@ -261,14 +262,28 @@
 
      ("other"
       :recursive t
-      :base-directory "~/Documents/code/w-graj.net"
-      :base-extension "svg\\|css\\|asc"
-      :publishing-directory "~/Documents/code/out.w-graj.net"
+      :base-directory ,wgraj/org-publish-base-directory
+      :base-extension "svg\\|css\\|asc\\|ico"
+      :publishing-directory ,wgraj/org-publish-publishing-directory
       :publishing-function org-publish-attachment)
      ("website" :components ("orgfiles" "other"))))
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages '((shell . t) (sql . t) (plantuml . t)))
+  (setq org-plantuml-executable-args
+        (append org-plantuml-executable-args '("-theme" "mono")))
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options :scale 3.0))
+  (defun org-confirm-babel-evaluate-nil (lang body)
+    nil)
+  ;; https://lists.gnu.org/archive/html/emacs-orgmode/2016-07/msg00394.html
+  (defun esf/execute-autoexec-block ()
+    (interactive)
+    (org-babel-goto-named-src-block "autoexec")
+    (setq-local org-confirm-babel-evaluate
+                #'org-confirm-babel-evaluate-nil)
+    (org-babel-execute-src-block)
+    (kill-local-variable 'org-confirm-babel-evaluate))
   (defun my-org-confirm-babel-evaluate (lang body)
     (not (string= lang "plantuml")))
   (defun my-org-html-wrap-tables
@@ -327,6 +342,20 @@ produce code that uses these same face definitions."
   (when (looking-at " +")
     (replace-match ""))
   (goto-char (point-min)))
+
+(use-package org-roam
+  :bind
+  (("C-c n l" . org-roam-buffer-toggle)
+   ("C-c n f" . org-roam-node-find)
+   ("C-c n i" . org-roam-node-insert)
+   ("C-c n r" . org-roam-ref-add)
+   ("C-c n t" . org-roam-tag-add)
+   ("C-c n a" . org-roam-alias-add))
+  :config
+  (define-key
+   minibuffer-local-completion-map (kbd "SPC") 'self-insert-command)
+  (org-roam-setup)
+  (org-roam-db-autosync-mode))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages
