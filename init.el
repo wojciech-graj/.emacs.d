@@ -232,7 +232,7 @@
 
 (setq wgraj/org-publish-base-directory
       (or (getenv "WEBSITE_BASE_DIRECTORY")
-          "~/Documents/code/w-graj.net/src")
+          "~/Documents/code/w-graj.net")
       wgraj/org-publish-publishing-directory
       (or (getenv "WEBSITE_PUBLISHING_DIRECTORY")
           "~/Documents/code/out.w-graj.net"))
