@@ -1,4 +1,7 @@
 *
+!.github/
+!.github/workflows/
+!.github/workflows/ci.yml
 !.gitignore
 !init.el
 !packages.txt

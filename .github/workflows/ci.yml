@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  install:
+    name: Install
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        xargs -a packages.txt sudo apt-get install -y --no-install-recommends emacs-nox
+
+    - name: Run init.el
+      run: emacs --batch --script init.el
