@@ -3,7 +3,7 @@ automake
 default-jre
 gcc
 graphviz
-ispell-dictionary
+iamerican
 ispell
 libpng-dev
 libpoppler-dev
