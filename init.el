@@ -230,67 +230,67 @@
 
 (require 'ox-publish)
 
-(let* ((wgraj/org-publish-base-directory
-        (or (getenv "WEBSITE_BASE_DIRECTORY")
-            "~/Documents/code/w-graj.net"))
-       (wgraj/org-publish-publishing-directory
-        (or (getenv "WEBSITE_PUBLISHING_DIRECTORY")
-            "~/Documents/code/out.w-graj.net")))
-  (use-package org
-    :mode ("\\.org\\'" . org-mode)
-    :custom
-    (org-hide-leading-stars t)
-    (org-hide-emphasis-markers t)
-    (org-startup-with-inline-images t)
-    (org-image-actual-width nil)
-    (org-export-allow-bind-keywords t)
-    (org-plantuml-jar-path "/usr/share/java/plantuml-1.2025.4.jar")
-    (org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
-    (org-publish-project-alist
-     `(("orgfiles"
-        :recursive t
-        :base-directory ,wgraj/org-publish-base-directory
-        :publishing-function org-html-publish-to-html
-        :publishing-directory ,wgraj/org-publish-publishing-directory
-        :section-numbers nil
-        :with-toc nil
-        :with-title nil
-        :time-stamp-file nil
-        :html-head-include-default-style nil
-        :html-head "<link rel=\"stylesheet\" href=\"/style.css\" type=\"text/css\"/>")
+(setq
+ wgraj/org-publish-base-directory
+ (or (getenv "WEBSITE_BASE_DIRECTORY") "~/Documents/code/w-graj.net")
+ wgraj/org-publish-publishing-directory
+ (or (getenv "WEBSITE_PUBLISHING_DIRECTORY")
+     "~/Documents/code/out.w-graj.net"))
 
-       ("other"
-        :recursive t
-        :base-directory ,wgraj/org-publish-base-directory
-        :base-extension "svg\\|css\\|asc\\|ico"
-        :publishing-directory ,wgraj/org-publish-publishing-directory
-        :publishing-function org-publish-attachment)
-       ("website" :components ("orgfiles" "other"))))
-    :config
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((shell . t) (sql . t) (plantuml . t)))
-    (setq org-plantuml-executable-args
-          (append org-plantuml-executable-args '("-theme" "mono")))
-    (setq org-format-latex-options
-          (plist-put org-format-latex-options :scale 3.0))
-    (defun org-confirm-babel-evaluate-nil (lang body)
-      nil)
-    ;; https://lists.gnu.org/archive/html/emacs-orgmode/2016-07/msg00394.html
-    (defun esf/execute-autoexec-block ()
-      (interactive)
-      (org-babel-goto-named-src-block "autoexec")
-      (setq-local org-confirm-babel-evaluate
-                  #'org-confirm-babel-evaluate-nil)
-      (org-babel-execute-src-block)
-      (kill-local-variable 'org-confirm-babel-evaluate))
-    (defun my-org-confirm-babel-evaluate (lang body)
-      (not (string= lang "plantuml")))
-    (defun my-org-html-wrap-tables
-        (orig-fun table contents info &rest _)
-      (format "<div class=\"table-container\">\n%s\n</div>"
-              (funcall orig-fun table contents info)))
-    (advice-add 'org-html-table :around #'my-org-html-wrap-tables)))
+(use-package org
+  :mode ("\\.org\\'" . org-mode)
+  :custom
+  (org-hide-leading-stars t)
+  (org-hide-emphasis-markers t)
+  (org-startup-with-inline-images t)
+  (org-image-actual-width nil)
+  (org-export-allow-bind-keywords t)
+  (org-plantuml-jar-path "/usr/share/java/plantuml-1.2025.4.jar")
+  (org-confirm-babel-evaluate #'my-org-confirm-babel-evaluate)
+  (org-publish-project-alist
+   `(("orgfiles"
+      :recursive t
+      :base-directory ,wgraj/org-publish-base-directory
+      :publishing-function org-html-publish-to-html
+      :publishing-directory ,wgraj/org-publish-publishing-directory
+      :section-numbers nil
+      :with-toc nil
+      :with-title nil
+      :time-stamp-file nil
+      :html-head-include-default-style nil
+      :html-head "<link rel=\"stylesheet\" href=\"/style.css\" type=\"text/css\"/>")
+
+     ("other"
+      :recursive t
+      :base-directory ,wgraj/org-publish-base-directory
+      :base-extension "svg\\|css\\|asc\\|ico\\|html"
+      :publishing-directory ,wgraj/org-publish-publishing-directory
+      :publishing-function org-publish-attachment)
+     ("website" :components ("orgfiles" "other"))))
+  :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages '((shell . t) (sql . t) (plantuml . t)))
+  (setq org-plantuml-executable-args
+        (append org-plantuml-executable-args '("-theme" "mono")))
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options :scale 3.0))
+  (defun org-confirm-babel-evaluate-nil (lang body)
+    nil)
+  ;; https://lists.gnu.org/archive/html/emacs-orgmode/2016-07/msg00394.html
+  (defun esf/execute-autoexec-block ()
+    (interactive)
+    (org-babel-goto-named-src-block "autoexec")
+    (setq-local org-confirm-babel-evaluate
+                #'org-confirm-babel-evaluate-nil)
+    (org-babel-execute-src-block)
+    (kill-local-variable 'org-confirm-babel-evaluate))
+  (defun my-org-confirm-babel-evaluate (lang body)
+    (not (string= lang "plantuml")))
+  (defun my-org-html-wrap-tables
+      (orig-fun table contents info &rest _)
+    (format "<div class=\"table-container\">\n%s\n</div>"
+            (funcall orig-fun table contents info)))
+  (advice-add 'org-html-table :around #'my-org-html-wrap-tables))
 
 (use-package htmlize
   :custom (org-html-htmlize-output-type 'css)
