@@ -189,13 +189,13 @@
   "Go up in the same buffer."
   (find-alternate-file ".."))
 
-(defun my-dired-mode-hook ()
+(defun wgraj/dired-mode-hook ()
   (put 'dired-find-alternate-file 'disabled nil) ; Disables the warning.
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
   (define-key
    dired-mode-map (kbd "^") 'dired-up-directory-same-buffer))
 
-(add-hook 'dired-mode-hook #'my-dired-mode-hook)
+(add-hook 'dired-mode-hook #'wgraj/dired-mode-hook)
 
 (setq dired-use-ls-dired nil)
 
@@ -610,55 +610,56 @@ produce code that uses these same face definitions."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; C
-(defun hook-c ()
-  (setq indent-tabs-mode t)
-  (enable-tabs)
-  (setq tab-width 8))
 (use-package cc-mode
   :hook ((c-mode . hook-c) (c++-mode . hook-c))
   :custom
   (c-default-style "linux")
   (c-indent-level 8)
   (c-basic-offset 8)
-  :config (c-set-offset 'arglist-cont-nonempty '+))
+  :config
+  (c-set-offset 'arglist-cont-nonempty '+)
+  (defun hook-c ()
+    (setq indent-tabs-mode t)
+    (enable-tabs)
+    (setq tab-width 8)))
 
 ;; Python
 (use-package pyvenv
   :config
   (setenv "WORKON_HOME" (concat (getenv "CONDA_PREFIX") "/envs"))
-  (pyvenv-mode t))
-(defun hook-py ()
-  (setq indent-tabs-mode nil)
-  (enable-tabs)
-  (setq tab-width 4)
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (unless (getenv "VIRTUAL_ENV")
-    (call-interactively #'pyvenv-workon))
-  (setq lsp-pylsp-plugins-jedi-environment (getenv "VIRTUAL_ENV"))
-  (lsp-deferred))
-(add-hook 'python-mode-hook 'hook-py)
-(setq-default python-indent-offset 4)
+  (pyvenv-mode t)
+  (defun hook-py ()
+    (setq indent-tabs-mode nil)
+    (enable-tabs)
+    (setq tab-width 4)
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (unless (getenv "VIRTUAL_ENV")
+      (call-interactively #'pyvenv-workon))
+    (setq lsp-pylsp-plugins-jedi-environment (getenv "VIRTUAL_ENV"))
+    (lsp-deferred))
+  (add-hook 'python-mode-hook 'hook-py)
+  (setq-default python-indent-offset 4))
 
 ;; Cython
 (use-package cython-mode)
 
 ;; Lua
-(defun hook-lua ()
-  (setq indent-tabs-mode nil)
-  (enable-tabs)
-  (setq tab-width 3))
 (use-package lua-mode
   :hook (lua-mode . hook-lua)
   :custom
   (lua-indent-nested-block-content-align nil)
   (lua-indent-close-paren-align nil)
-  (lua-indent-offset 3))
+  (lua-indent-offset 3)
+  :config
+  (defun hook-lua ()
+    (setq indent-tabs-mode nil)
+    (enable-tabs)
+    (setq tab-width 3)))
 
 ;; Elisp
 (use-package elisp-autofmt
   :commands (elisp-autofmt-mode elisp-autofmt-buffer)
   :hook (emacs-lisp-mode . elisp-autofmt-mode))
-(add-hook 'emacs-lisp-mode-hook 'disable-tabs)
 
 ;; SQL
 (use-package sqlformat
@@ -672,18 +673,16 @@ produce code that uses these same face definitions."
 
 ;; Java
 (use-package lsp-java
-  :after lsp)
-(defun hook-java ()
-  (setq indent-tabs-mode nil)
-  (enable-tabs)
-  (setq tab-width 4)
-  (setq c-basic-offset 4))
-(add-hook 'java-mode-hook 'hook-java)
+  :after lsp
+  :config
+  (defun hook-java ()
+    (setq indent-tabs-mode nil)
+    (enable-tabs)
+    (setq tab-width 4)
+    (setq c-basic-offset 4))
+  (add-hook 'java-mode-hook 'hook-java))
 
 ;; Rust
-(use-package cargo
-  :diminish
-  :hook (rust-mode . cargo-minor-mode))
 (use-package rust-mode
   :hook (rust-mode . hook-rust)
   :bind
@@ -694,31 +693,57 @@ produce code that uses these same face definitions."
   :custom
   (rust-format-on-save t)
   (rust-format-show-buffer nil)
-  (rust-format-goto-problem nil))
-(defun hook-rust ()
-  (setq indent-tabs-mode nil)
-  (disable-tabs)
-  (setq tab-width 4)
-  (setq c-basic-offset 4))
+  (rust-format-goto-problem nil)
+  :config
+  (defun hook-rust ()
+    (setq indent-tabs-mode nil)
+    (disable-tabs)
+    (setq tab-width 4)
+    (setq c-basic-offset 4))
 
-;; From: https://github.com/scturtle/dotfiles/blob/f1e087e247876dbae20d56f944a1e96ad6f31e0b/doom_emacs/.doom.d/config.el#L74-L85
-(cl-defmethod lsp-clients-extract-signature-on-hover
-    (contents (_server-id (eql rust-analyzer)))
-  (-let*
-   (((&hash "value") contents)
-    (groups (--partition-by (s-blank? it) (s-lines (s-trim value))))
-    (sig_group
-     (if (s-equals? "```rust" (car (-third-item groups)))
-         (-third-item groups)
-       (car groups)))
-    (sig
-     (-->
-      sig_group
-      (--drop-while (s-equals? "```rust" it) it)
-      (--take-while (not (s-equals? "```" it)) it)
-      (--map (s-trim it) it)
-      (s-join " " it))))
-   (lsp--render-element (concat "```rust\n" sig "\n```"))))
+  ;; From: https://github.com/scturtle/dotfiles/blob/7fbd96f792099f8c4c496da5c7e98b1e0dadd310/doom_emacs/.doom.d/config.el#L63-L74
+  (cl-defmethod lsp-clients-extract-signature-on-hover
+      (contents (_server-id (eql rust-analyzer)))
+    (let* ((value
+            (if lsp-use-plists
+                (plist-get contents :value)
+              (gethash "value" contents)))
+           (groups
+            (--partition-by (s-blank? it) (s-lines (s-trim value))))
+           (sig_group
+            (if (s-equals? "```rust" (car (-third-item groups)))
+                (-third-item groups)
+              (car groups)))
+           (sig
+            (-->
+             sig_group
+             (--drop-while (s-equals? "```rust" it) it)
+             (--take-while (not (s-equals? "```" it)) it)
+             (--map (s-trim it) it)
+             (s-join " " it))))
+      (lsp--render-element (concat "```rust\n" sig "\n```"))))
+
+  (defvar wgraj/rust-cargo-build-env nil)
+
+  (defun wgraj/set-environment-vars (env-list)
+    "Set environment variables from ENV-LIST, which is an alist of (KEY . VALUE)."
+    (dolist (pair env-list)
+      (setenv (car pair) (cdr pair))))
+
+  (defun wgraj/unset-environment-vars (env-list)
+    "Unset environment variables listed in ENV-LIST (an alist of (KEY . VALUE))."
+    (dolist (pair env-list)
+      (setenv (car pair) nil)))
+
+  (defun wgraj/rust-compile-wrapper (orig-fun &rest args)
+    (when wgraj/rust-cargo-build-env
+      (wgraj/set-environment-vars wgraj/rust-cargo-build-env))
+    (let ((result (apply orig-fun args)))
+      (when wgraj/rust-cargo-build-env
+        (wgraj/unset-environment-vars wgraj/rust-cargo-build-env))
+      result))
+
+  (advice-add 'rust-compile :around #'wgraj/rust-compile-wrapper))
 
 ;; Haskell
 (use-package haskell-mode)
