@@ -224,6 +224,12 @@
 ;; Bind copy/paste
 (cua-mode t)
 
+(defun wgraj/set-local-environment-vars (env-list)
+  (make-local-variable 'process-environment)
+  (setq process-environment (copy-sequence process-environment))
+  (dolist (pair env-list)
+    (setenv (car pair) (cdr pair))))
+
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Org
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -721,29 +727,7 @@ produce code that uses these same face definitions."
              (--take-while (not (s-equals? "```" it)) it)
              (--map (s-trim it) it)
              (s-join " " it))))
-      (lsp--render-element (concat "```rust\n" sig "\n```"))))
-
-  (defvar wgraj/rust-cargo-build-env nil)
-
-  (defun wgraj/set-environment-vars (env-list)
-    "Set environment variables from ENV-LIST, which is an alist of (KEY . VALUE)."
-    (dolist (pair env-list)
-      (setenv (car pair) (cdr pair))))
-
-  (defun wgraj/unset-environment-vars (env-list)
-    "Unset environment variables listed in ENV-LIST (an alist of (KEY . VALUE))."
-    (dolist (pair env-list)
-      (setenv (car pair) nil)))
-
-  (defun wgraj/rust-compile-wrapper (orig-fun &rest args)
-    (when wgraj/rust-cargo-build-env
-      (wgraj/set-environment-vars wgraj/rust-cargo-build-env))
-    (let ((result (apply orig-fun args)))
-      (when wgraj/rust-cargo-build-env
-        (wgraj/unset-environment-vars wgraj/rust-cargo-build-env))
-      result))
-
-  (advice-add 'rust-compile :around #'wgraj/rust-compile-wrapper))
+      (lsp--render-element (concat "```rust\n" sig "\n```")))))
 
 ;; Haskell
 (use-package haskell-mode)
