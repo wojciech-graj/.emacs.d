@@ -9,31 +9,32 @@
   (setq use-package-compute-statistics t))
 
 (setq
- gc-cons-threshold (* 16 (* 1024 1024))
- ring-bell-function 'ignore
- inhibit-startup-screen t
- initial-scratch-message nil
- sentence-end-double-space nil
- save-interprogram-paste-before-kill t
- use-dialog-box nil
- mark-even-if-inactive nil
- kill-whole-line t
+ auto-revert-check-vc-info t
+ auto-save-default nil
  case-fold-search nil
  compilation-read-command nil
- compilation-scroll-output 'first-error
- use-short-answers t
- fast-but-imprecise-scrolling t
- load-prefer-newer t
+ compilation-scroll-output t
  confirm-kill-processes nil
- native-comp-async-report-warnings-errors 'silent
- display-line-numbers-type 'absolute
- make-backup-files nil
- auto-save-default nil
  create-lockfiles nil
  custom-file "~/.emacs.d/.emacs-custom.el"
  custom-safe-themes t
+ display-line-numbers-type 'absolute
+ fast-but-imprecise-scrolling t
+ gc-cons-threshold (* 16 (* 1024 1024))
+ inhibit-startup-screen t
+ initial-scratch-message nil
+ kill-whole-line t
+ load-prefer-newer t
+ make-backup-files nil
+ mark-even-if-inactive nil
  max-mini-window-height 8
- use-package-always-ensure t)
+ native-comp-async-report-warnings-errors 'silent
+ ring-bell-function 'ignore
+ save-interprogram-paste-before-kill t
+ sentence-end-double-space nil
+ use-dialog-box nil
+ use-package-always-ensure t
+ use-short-answers t)
 
 ;; OS-specific config
 (cond
@@ -132,7 +133,9 @@
                             "")))
                  face font-lock-preprocessor-face)
                 mode-line-buffer-identification
-                "  "
+                " "
+                (vc-mode vc-mode)
+                " "
                 mode-line-modes
                 mode-line-misc-info
                 mode-line-end-spaces))
@@ -166,12 +169,6 @@
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
-
-;; Diminish
-(use-package diminish
-  :config
-  (diminish 'eldoc-mode)
-  (diminish 'visual-line-mode))
 
 ;; Miscellaneous keybindings
 (require 'bind-key)
@@ -224,11 +221,14 @@
 ;; Bind copy/paste
 (cua-mode t)
 
-(defun wgraj/set-local-environment-vars (env-list)
-  (make-local-variable 'process-environment)
-  (setq process-environment (copy-sequence process-environment))
-  (dolist (pair env-list)
-    (setenv (car pair) (cdr pair))))
+;; From: http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html
+(require 'ansi-color)
+(defun endless/colorize-compilation ()
+  "Colorize from `compilation-filter-start' to `point'."
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region compilation-filter-start (point))))
+
+(add-hook 'compilation-filter-hook #'endless/colorize-compilation)
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Org
@@ -457,6 +457,9 @@ produce code that uses these same face definitions."
 (use-package flyspell
   :diminish
   :hook ((text-mode . flyspell-mode) (prog-mode . flyspell-prog-mode)))
+
+(use-package magit
+  :custom (magit-define-global-key-bindings 'recommended))
 
 ;; indentation markers
 (use-package highlight-indent-guides
@@ -740,6 +743,13 @@ produce code that uses these same face definitions."
 
 ;; Docker
 (use-package dockerfile-mode)
+
+;; Diminish modes
+(use-package diminish
+  :config
+  (diminish 'eldoc-mode)
+  (diminish 'visual-line-mode)
+  (diminish 'auto-revert-mode))
 
 ;; Local variables:
 ;; elisp-autofmt-load-packages-local: ("use-package")
