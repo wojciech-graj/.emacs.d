@@ -6,9 +6,9 @@
 
 ;; Use with `use-package-report` for benchmarking init.el
 (when nil
-  (setq use-package-compute-statistics t))
+  (setopt use-package-compute-statistics t))
 
-(setq
+(setopt
  auto-revert-check-vc-info t
  auto-save-default nil
  case-fold-search nil
@@ -20,7 +20,7 @@
  custom-safe-themes t
  display-line-numbers-type 'absolute
  fast-but-imprecise-scrolling t
- gc-cons-threshold (* 16 (* 1024 1024))
+ gc-cons-threshold (* 16 1024 1024)
  inhibit-startup-screen t
  initial-scratch-message nil
  kill-whole-line t
@@ -34,15 +34,8 @@
  sentence-end-double-space nil
  use-dialog-box nil
  use-package-always-ensure t
- use-short-answers t)
-
-;; OS-specific config
-(cond
- ((eq system-type 'darwin)
-  (setq mac-command-modifier 'super)
-  (setenv "CONDA_PREFIX" "/opt/homebrew/Caskroom/miniconda/base"))
- ((eq system-type 'gnu/linux)
-  (setenv "CONDA_PREFIX" "~/miniconda3")))
+ use-short-answers t
+ mode-line-right-align-edge 'right-margin)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -116,29 +109,30 @@
       (setq output (concat ".../" output)))
     output))
 
-(setq-default mode-line-format
-              '("%e"
-                mode-line-front-space
-                mode-line-modified
-                " "
-                (:eval
-                 '((line-number-mode
-                    ("%4l" (column-number-mode (":" (3 "%c")))))))
-                " "
-                (:propertize
-                 (:eval
-                  (format "%24s"
-                          (if (buffer-file-name)
-                              (shorten-directory default-directory 24)
-                            "")))
-                 face font-lock-preprocessor-face)
-                mode-line-buffer-identification
-                " "
-                (vc-mode vc-mode)
-                " "
-                mode-line-modes
-                mode-line-misc-info
-                mode-line-end-spaces))
+(setopt mode-line-format
+        '("%e"
+          mode-line-front-space
+          mode-line-modified
+          " "
+          (:eval
+           '((line-number-mode
+              ("%4l" (column-number-mode (":" (3 "%c")))))))
+          " "
+          (:propertize
+           (:eval
+            (format "%24s"
+                    (if (buffer-file-name)
+                        (shorten-directory default-directory 24)
+                      "")))
+           face font-lock-preprocessor-face)
+          mode-line-buffer-identification
+          " "
+          mode-line-modes
+          mode-line-misc-info
+          mode-line-format-right-align
+          (vc-mode vc-mode)
+          " "
+          mode-line-end-spaces))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialize package.el and use-package
@@ -177,7 +171,7 @@
 (bind-key "C-c s" #'isearch-forward-symbol)
 
 ;; Wrap
-(setq-default truncate-lines t)
+(setopt truncate-lines t)
 (global-visual-line-mode t)
 
 ;; From: https://blog.sumtypeofway.com/posts/emacs-config.html
@@ -194,13 +188,11 @@
 
 (add-hook 'dired-mode-hook #'wgraj/dired-mode-hook)
 
-(setq dired-use-ls-dired nil)
-
 (defun display-startup-echo-area-message ()
   (message "Welcome back."))
 
 ;; Shebang line in scripts
-(setq executable-prefix-env t)
+(setopt executable-prefix-env t)
 
 ;; Closing brackets
 (electric-pair-mode)
@@ -273,13 +265,12 @@
       :publishing-directory ,wgraj/org-publish-publishing-directory
       :publishing-function org-publish-attachment)
      ("website" :components ("orgfiles" "other"))))
+  (org-plantuml-args '(append org-plantuml-args "-theme" "mono"))
+  (org-format-latex-options
+   (plist-put org-format-latex-options :scale 3.0))
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages '((shell . t) (sql . t) (plantuml . t)))
-  (setq org-plantuml-executable-args
-        (append org-plantuml-executable-args '("-theme" "mono")))
-  (setq org-format-latex-options
-        (plist-put org-format-latex-options :scale 3.0))
   (defun org-confirm-babel-evaluate-nil (lang body)
     nil)
   ;; https://lists.gnu.org/archive/html/emacs-orgmode/2016-07/msg00394.html
@@ -433,9 +424,8 @@ produce code that uses these same face definitions."
 (use-package pdf-tools
   :mode ("\\.pdf\\'" . pdf-view-mode)
   :hook (pdf-view-mode . (lambda () (display-line-numbers-mode -1)))
-  :config
-  (setq-default pdf-view-display-size 'fit-page)
-  (pdf-tools-install :no-query))
+  :custom (pdf-view-display-size 'fit-page)
+  :config (pdf-tools-install :no-query))
 
 (use-package company
   :diminish
@@ -459,7 +449,13 @@ produce code that uses these same face definitions."
   :hook ((text-mode . flyspell-mode) (prog-mode . flyspell-prog-mode)))
 
 (use-package magit
-  :custom (magit-define-global-key-bindings 'recommended))
+  :custom
+  (magit-define-global-key-bindings 'recommended)
+  (magit-section-initial-visibility-alist '((untracked . show))))
+
+(use-package hyperbole
+  :diminish
+  :config (hyperbole-mode 1))
 
 ;; indentation markers
 (use-package highlight-indent-guides
@@ -533,17 +529,18 @@ produce code that uses these same face definitions."
   ;; Optional config for Java from Sdkman
   (when nil
     (progn
-      (setq lsp-java-configuration-runtimes
-            '[(:name
-               "JavaSE-21"
-               :path
-               (expand-file-name ".sdkman/candidates/java/21.0.2-open"
-                                 (getenv "HOME"))
-               :default t)]
-            lsp-java-java-path
-            (expand-file-name
-             ".sdkman/candidates/java/21.0.2-open/bin/java"
-             (getenv "HOME")))
+      (setopt
+       lsp-java-configuration-runtimes
+       '[(:name
+          "JavaSE-21"
+          :path
+          (expand-file-name ".sdkman/candidates/java/21.0.2-open"
+                            (getenv "HOME"))
+          :default t)]
+       lsp-java-java-path
+       (expand-file-name
+        ".sdkman/candidates/java/21.0.2-open/bin/java"
+        (getenv "HOME")))
       (setenv "JAVA_HOME"
               (expand-file-name ".sdkman/candidates/java/21.0.2-open"
                                 (getenv "HOME")))))
@@ -574,19 +571,19 @@ produce code that uses these same face definitions."
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (add-hook 'before-save-hook #'delete-trailing-whitespace)
-(setq require-final-newline t)
+(setopt require-final-newline t)
 
 (defun disable-tabs ()
-  (setq indent-tabs-mode nil))
+  (setopt indent-tabs-mode nil))
 (defun enable-tabs ()
   (local-set-key (kbd "TAB") 'tab-to-tab-stop))
 
 (add-hook 'prog-mode-hook 'enable-tabs)
 
 ;; Making electric-indent behave sanely
-(setq-default electric-indent-inhibit t)
+(setopt electric-indent-inhibit t)
 
-(setq backward-delete-char-untabify-method 'hungry)
+(setopt backward-delete-char-untabify-method 'hungry)
 
 ;; From: https://lists.gnu.org/r/help-gnu-emacs/2003-06/msg00372.html
 (defun backward-delete-char-tablevel ()
@@ -635,19 +632,19 @@ produce code that uses these same face definitions."
 ;; Python
 (use-package pyvenv
   :config
-  (setenv "WORKON_HOME" (concat (getenv "CONDA_PREFIX") "/envs"))
-  (pyvenv-mode t)
-  (defun hook-py ()
-    (setq indent-tabs-mode nil)
-    (enable-tabs)
-    (setq tab-width 4)
-    (add-hook 'before-save-hook #'lsp-format-buffer t t)
-    (unless (getenv "VIRTUAL_ENV")
-      (call-interactively #'pyvenv-workon))
-    (setq lsp-pylsp-plugins-jedi-environment (getenv "VIRTUAL_ENV"))
-    (lsp-deferred))
-  (add-hook 'python-mode-hook 'hook-py)
-  (setq-default python-indent-offset 4))
+  (setenv "WORKON_HOME" "~/miniconda3/envs")
+  (pyvenv-mode t))
+(defun hook-py ()
+  (setq indent-tabs-mode nil)
+  (enable-tabs)
+  (setq tab-width 4)
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (unless (getenv "VIRTUAL_ENV")
+    (call-interactively #'pyvenv-workon))
+  (setq lsp-pylsp-plugins-jedi-environment (getenv "VIRTUAL_ENV"))
+  (lsp-deferred)
+  (add-hook 'python-mode-hook 'hook-py))
+(setopt python-indent-offset 4)
 
 ;; Cython
 (use-package cython-mode)
@@ -665,7 +662,7 @@ produce code that uses these same face definitions."
     (enable-tabs)
     (setq tab-width 3)))
 
-;; Elisp
+;; ELisp
 (use-package elisp-autofmt
   :commands (elisp-autofmt-mode elisp-autofmt-buffer)
   :hook (emacs-lisp-mode . elisp-autofmt-mode))
@@ -708,29 +705,28 @@ produce code that uses these same face definitions."
     (setq indent-tabs-mode nil)
     (disable-tabs)
     (setq tab-width 4)
-    (setq c-basic-offset 4))
-
-  ;; From: https://github.com/scturtle/dotfiles/blob/7fbd96f792099f8c4c496da5c7e98b1e0dadd310/doom_emacs/.doom.d/config.el#L63-L74
-  (cl-defmethod lsp-clients-extract-signature-on-hover
-      (contents (_server-id (eql rust-analyzer)))
-    (let* ((value
-            (if lsp-use-plists
-                (plist-get contents :value)
-              (gethash "value" contents)))
-           (groups
-            (--partition-by (s-blank? it) (s-lines (s-trim value))))
-           (sig_group
-            (if (s-equals? "```rust" (car (-third-item groups)))
-                (-third-item groups)
-              (car groups)))
-           (sig
-            (-->
-             sig_group
-             (--drop-while (s-equals? "```rust" it) it)
-             (--take-while (not (s-equals? "```" it)) it)
-             (--map (s-trim it) it)
-             (s-join " " it))))
-      (lsp--render-element (concat "```rust\n" sig "\n```")))))
+    (setq c-basic-offset 4)))
+;; From: https://github.com/scturtle/dotfiles/blob/7fbd96f792099f8c4c496da5c7e98b1e0dadd310/doom_emacs/.doom.d/config.el#L63-L74
+(cl-defmethod lsp-clients-extract-signature-on-hover
+    (contents (_server-id (eql rust-analyzer)))
+  (let* ((value
+          (if lsp-use-plists
+              (plist-get contents :value)
+            (gethash "value" contents)))
+         (groups
+          (--partition-by (s-blank? it) (s-lines (s-trim value))))
+         (sig_group
+          (if (s-equals? "```rust" (car (-third-item groups)))
+              (-third-item groups)
+            (car groups)))
+         (sig
+          (-->
+           sig_group
+           (--drop-while (s-equals? "```rust" it) it)
+           (--take-while (not (s-equals? "```" it)) it)
+           (--map (s-trim it) it)
+           (s-join " " it))))
+    (lsp--render-element (concat "```rust\n" sig "\n```"))))
 
 ;; Haskell
 (use-package haskell-mode)
