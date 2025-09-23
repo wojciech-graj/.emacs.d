@@ -1,7 +1,6 @@
 autoconf
 automake
 default-jre
-emacs-common-non-dfsg
 gcc
 git
 graphviz

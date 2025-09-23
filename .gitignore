@@ -5,3 +5,4 @@
 !.gitignore
 !init.el
 !packages.txt
+!packages-extra.txt
