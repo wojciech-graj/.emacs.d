@@ -702,79 +702,12 @@ produce code that uses these same face definitions."
   (rust-format-on-save t)
   (rust-format-show-buffer nil)
   (rust-format-goto-problem nil)
-  (rust-always-locate-project-on-open t)
   :config
   (defun hook-rust ()
     (setq indent-tabs-mode nil)
     (disable-tabs)
     (setq tab-width 4)
-    (setq c-basic-offset 4))
-
-  (defvar wgraj/rust-run-targets (make-hash-table :test #'equal)
-    "Hash table mapping project roots to `wgraj/rust-run' binary targets.")
-
-  ;; From (modified): https://github.com/rust-lang/rust-mode/issues/471#issuecomment-1346602496
-  (defun wgraj/rust-run (target)
-    "Like `rust-run', but prompt for a target if necessary.
-
-The last run target is stored in `wgraj/rust-run-targets'.  To
-force target selection, use a prefix argument."
-    ;; Notice this could be generalized to all targets, eg for `rust-build'.
-    (interactive
-     (list
-      (let* ((json
-              (with-temp-buffer
-                (call-process "cargo"
-                              nil
-                              (current-buffer)
-                              nil
-                              "metadata"
-                              "--format-version"
-                              "1"
-                              "--frozen")
-                (goto-char (point-min))
-                (json-parse-buffer :null-object nil)))
-             (members
-              (seq-map
-               (lambda (wm)
-                 (when (string-match "#\\([^@]+\\)@" wm)
-                   (match-string 1 wm)))
-               (gethash "workspace_members" json)))
-             (targets
-              (-flatten ; from dash.el, but not strictly required.
-               (seq-map
-                (lambda (v)
-                  (seq-keep
-                   (lambda (target)
-                     (when (seq-contains-p
-                            ;; Filter out non-binary targets.
-                            (gethash "kind" target) "bin"
-                            'string=)
-                       (gethash "name" target)))
-                   v))
-                (seq-map
-                 (lambda (package) (gethash "targets" package))
-                 (seq-filter
-                  (lambda (pkg)
-                    (seq-contains-p members (gethash "name" pkg)))
-                  (gethash "packages" json))))))
-             (target
-              (gethash rust-buffer-project wgraj/rust-run-targets)))
-        (or (and (not current-prefix-arg)
-                 (member target targets)
-                 target)
-            (and (null (cdr targets)) (car targets))
-            (completing-read "Target: " targets)))))
-    (when (called-interactively-p 'any)
-      (puthash rust-buffer-project target wgraj/rust-run-targets))
-    (rust--compile
-     nil
-     "%s run %s --bin %s"
-     rust-cargo-bin
-     rust-cargo-default-arguments
-     target))
-
-  (advice-add 'rust-run :override #'wgraj/rust-run))
+    (setq c-basic-offset 4)))
 
 ;; From: https://github.com/scturtle/dotfiles/blob/7fbd96f792099f8c4c496da5c7e98b1e0dadd310/doom_emacs/.doom.d/config.el#L63-L74
 (cl-defmethod lsp-clients-extract-signature-on-hover
