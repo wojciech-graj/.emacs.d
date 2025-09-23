@@ -265,7 +265,7 @@
       :publishing-directory ,wgraj/org-publish-publishing-directory
       :publishing-function org-publish-attachment)
      ("website" :components ("orgfiles" "other"))))
-  (org-plantuml-args '(append org-plantuml-args "-theme" "mono"))
+  (org-plantuml-args `("-headless" "-theme" "mono"))
   (org-format-latex-options
    (plist-put org-format-latex-options :scale 3.0))
   :config
