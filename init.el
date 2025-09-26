@@ -19,6 +19,7 @@
  custom-file "~/.emacs.d/.emacs-custom.el"
  custom-safe-themes t
  display-line-numbers-type 'absolute
+ executable-prefix-env t
  fast-but-imprecise-scrolling t
  gc-cons-threshold (* 16 1024 1024)
  inhibit-startup-screen t
@@ -28,14 +29,14 @@
  make-backup-files nil
  mark-even-if-inactive nil
  max-mini-window-height 8
+ mode-line-right-align-edge 'right-margin
  native-comp-async-report-warnings-errors 'silent
  ring-bell-function 'ignore
  save-interprogram-paste-before-kill t
  sentence-end-double-space nil
  use-dialog-box nil
  use-package-always-ensure t
- use-short-answers t
- mode-line-right-align-edge 'right-margin)
+ use-short-answers t)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -190,9 +191,6 @@
 
 (defun display-startup-echo-area-message ()
   (message "Welcome back."))
-
-;; Shebang line in scripts
-(setopt executable-prefix-env t)
 
 ;; Closing brackets
 (electric-pair-mode)
@@ -358,8 +356,6 @@ produce code that uses these same face definitions."
 ;; Packages
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package dash)
-
 ;; parenthesis highlighting
 (use-package paren
   :custom
@@ -443,8 +439,7 @@ produce code that uses these same face definitions."
 
 (use-package citeproc)
 
-(use-package flycheck
-  :hook (java-mode . flycheck-mode))
+(use-package flycheck)
 
 (use-package flyspell
   :diminish
@@ -472,14 +467,9 @@ produce code that uses these same face definitions."
   (highlight-indent-guides-method 'character)
   (highlight-indent-guides-character ?|))
 
-(use-package lsp-haskell)
-
 ;; lsp
 (use-package lsp-mode
-  :hook
-  ((java-mode
-    c-mode c++-mode rust-mode haskell-mode haskell-literate-mode)
-   . lsp-deferred)
+  :hook ((c-mode c++-mode rust-mode) . lsp-deferred)
   :commands lsp
   :custom
   (lsp-auto-guess-root t)
@@ -503,13 +493,6 @@ produce code that uses these same face definitions."
   ;; C
   (lsp-clients-clangd-args '("--compile-commands-dir=./builddir"))
 
-  ;; Java
-  (lsp-java-vmargs
-   `("-noverify"
-     "-Xmx1G"
-     "-XX:+UseG1GC"
-     "-XX:+UseStringDeduplication"))
-
   ;; Rust
   (lsp-rust-analyzer-display-lifetime-elision-hints-enable
    "skip_trivial")
@@ -528,24 +511,6 @@ produce code that uses these same face definitions."
   (lsp-pylsp-plugins-rope-autoimport-enabled t)
   (lsp-pylsp-plugins-rope-completion-enabled nil)
   :config
-  ;; Optional config for Java from Sdkman
-  (when nil
-    (progn
-      (setopt
-       lsp-java-configuration-runtimes
-       '[(:name
-          "JavaSE-21"
-          :path
-          (expand-file-name ".sdkman/candidates/java/21.0.2-open"
-                            (getenv "HOME"))
-          :default t)]
-       lsp-java-java-path
-       (expand-file-name
-        ".sdkman/candidates/java/21.0.2-open/bin/java"
-        (getenv "HOME")))
-      (setenv "JAVA_HOME"
-              (expand-file-name ".sdkman/candidates/java/21.0.2-open"
-                                (getenv "HOME")))))
 
   ;; Custom LSP modeline print function without process id
   ;; From: https://github.com/emacs-lsp/lsp-mode/discussions/3729
@@ -679,17 +644,6 @@ produce code that uses these same face definitions."
      "--placeholder=%\\([a-zA-Z_]+\\)s" ;; Psycopg parameters: %(...)s
      )))
 
-;; Java
-(use-package lsp-java
-  :after lsp
-  :config
-  (defun hook-java ()
-    (setq indent-tabs-mode nil)
-    (enable-tabs)
-    (setq tab-width 4)
-    (setq c-basic-offset 4))
-  (add-hook 'java-mode-hook 'hook-java))
-
 ;; Rust
 (use-package rust-mode
   :hook (rust-mode . hook-rust)
@@ -730,12 +684,6 @@ produce code that uses these same face definitions."
            (--map (s-trim it) it)
            (s-join " " it))))
     (lsp--render-element (concat "```rust\n" sig "\n```"))))
-
-;; Haskell
-(use-package haskell-mode)
-(use-package ormolu
-  :diminish
-  :hook (haskell-mode . ormolu-format-on-save-mode))
 
 ;; YAML
 (use-package yaml-mode)
