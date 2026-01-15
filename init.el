@@ -259,7 +259,7 @@
      ("other"
       :recursive t
       :base-directory ,wgraj/org-publish-base-directory
-      :base-extension "svg\\|css\\|asc\\|ico\\|html"
+      :base-extension "svg\\|css\\|asc\\|ico\\|html\\|jpg"
       :publishing-directory ,wgraj/org-publish-publishing-directory
       :publishing-function org-publish-attachment)
      ("website" :components ("orgfiles" "other"))))
