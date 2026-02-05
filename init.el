@@ -161,9 +161,9 @@
 
 (use-package exec-path-from-shell
   :config
-  (dolist (var
-           '("OPENROUTER_API_KEY" "OPENAI_API_BASE" "OPENAI_API_KEY" "AIDER_MODEL"))
-    (add-to-list 'exec-path-from-shell-variables var))
+  ;; (dolist (var
+  ;;          '())
+  ;;   (add-to-list 'exec-path-from-shell-variables var))
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
@@ -456,10 +456,6 @@ produce code that uses these same face definitions."
 (use-package hyperbole
   :diminish
   :config (hyperbole-mode 1))
-
-(use-package aidermacs
-  :if (executable-find "aider")
-  :bind (("C-c a" . aidermacs-transient-menu)))
 
 ;; indentation markers
 (use-package highlight-indent-guides
