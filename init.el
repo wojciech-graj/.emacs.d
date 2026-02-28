@@ -591,13 +591,13 @@ produce code that uses these same face definitions."
   :custom
   (c-default-style "linux")
   (c-indent-level 8)
-  (c-basic-offset 8)
   :config
   (c-set-offset 'arglist-cont-nonempty '+)
   (defun hook-c ()
     (setq indent-tabs-mode t)
     (enable-tabs)
-    (setq tab-width 8)))
+    (setq tab-width 8)
+    (setq c-basic-offset 8)))
 
 ;; Python
 (use-package pyvenv
@@ -693,6 +693,14 @@ produce code that uses these same face definitions."
 
 ;; Docker
 (use-package dockerfile-mode)
+
+;; JSON
+(add-hook 'js-json-mode-hook 'hook-json)
+(defun hook-json ()
+  (setq indent-tabs-mode nil)
+  (disable-tabs)
+  (setq tab-width 4)
+  (setq c-basic-offset 4))
 
 ;; Diminish modes
 (use-package diminish
