@@ -475,7 +475,7 @@ produce code that uses these same face definitions."
 
 ;; lsp
 (use-package lsp-mode
-  :hook ((c-mode c++-mode rust-mode) . lsp-deferred)
+  :hook ((c-mode c++-mode rust-mode conf-toml-mode) . lsp-deferred)
   :commands lsp
   :custom
   (lsp-auto-guess-root t)
