@@ -707,7 +707,8 @@ produce code that uses these same face definitions."
   :config
   (diminish 'eldoc-mode)
   (diminish 'visual-line-mode)
-  (diminish 'auto-revert-mode))
+  (diminish 'auto-revert-mode)
+  (diminish 'hywiki-mode))
 
 ;; Local variables:
 ;; elisp-autofmt-load-packages-local: ("use-package")
