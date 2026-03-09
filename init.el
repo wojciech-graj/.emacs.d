@@ -455,6 +455,9 @@ produce code that uses these same face definitions."
 
 (use-package hyperbole
   :diminish
+  :custom
+  ; https://lists.gnu.org/archive/html/bug-hyperbole/2026-03/msg00001.html
+  (hywiki-default-mode nil)
   :config (hyperbole-mode 1))
 
 ;; indentation markers
@@ -707,8 +710,7 @@ produce code that uses these same face definitions."
   :config
   (diminish 'eldoc-mode)
   (diminish 'visual-line-mode)
-  (diminish 'auto-revert-mode)
-  (diminish 'hywiki-mode))
+  (diminish 'auto-revert-mode))
 
 ;; Local variables:
 ;; elisp-autofmt-load-packages-local: ("use-package")
