@@ -449,6 +449,13 @@ produce code that uses these same face definitions."
 
 (use-package magit
   :if (executable-find "git")
+  :config
+  ; https://emacs.stackexchange.com/a/72887
+  (put
+   'magit-revision-mode 'magit-diff-default-arguments
+   `("--show-signature"
+     ,@
+     (get 'magit-diff-mode 'magit-diff-default-arguments)))
   :custom
   (magit-define-global-key-bindings 'recommended)
   (magit-section-initial-visibility-alist '((untracked . show))))
