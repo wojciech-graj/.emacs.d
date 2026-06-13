@@ -286,7 +286,11 @@
       (orig-fun table contents info &rest _)
     (format "<div class=\"table-container\">\n%s\n</div>"
             (funcall orig-fun table contents info)))
-  (advice-add 'org-html-table :around #'my-org-html-wrap-tables))
+  (advice-add 'org-html-table :around #'my-org-html-wrap-tables)
+  ;; Fix for org-html-htmlize-generate-css "Invalid face: org-block-background"
+  (defface org-block-background '((t :inherit org-block))
+    "Dummy face to fix htmlize export errors."
+    :group 'org-faces))
 
 (use-package htmlize
   :custom (org-html-htmlize-output-type 'css)
