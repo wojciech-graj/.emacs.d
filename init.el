@@ -486,7 +486,7 @@ produce code that uses these same face definitions."
 ;; lsp
 (use-package lsp-mode
   :hook
-  ((c-mode c++-mode rust-mode conf-toml-mode python-mode css-mode)
+  ((c-mode c++-mode rust-mode conf-toml-mode python-mode css-mode yaml-mode)
    .
    lsp-deferred)
   :commands lsp
