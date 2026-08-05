@@ -222,6 +222,9 @@
 
 (add-hook 'compilation-filter-hook #'endless/colorize-compilation)
 
+;; Ediff
+(setopt ediff-window-setup-function 'ediff-setup-windows-plain)
+
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Org
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
