@@ -613,8 +613,8 @@ produce code that uses these same face definitions."
   (unless (getenv "VIRTUAL_ENV")
     (call-interactively #'pyvenv-workon))
   (setq lsp-pylsp-plugins-jedi-environment (getenv "VIRTUAL_ENV"))
-  (lsp-deferred)
-  (add-hook 'python-mode-hook 'hook-py))
+  (lsp-deferred))
+(add-hook 'python-mode-hook 'hook-py)
 (setopt python-indent-offset 4)
 
 ;; Cython
