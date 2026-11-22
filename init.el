@@ -38,8 +38,6 @@
  use-package-always-ensure t
  use-short-answers t)
 
-(fset 'yes-or-no-p 'y-or-n-p)
-
 (cond
  ((file-directory-p "~/Documents/code/")
   (setq default-directory "~/Documents/code/"))
@@ -148,8 +146,6 @@
   (package-refresh-contents))
 
 ;; Bootstrap 'use-package'
-(eval-after-load
-    'gnutls '(add-to-list 'gnutls-trustfiles "/etc/ssl/cert.pem"))
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 (eval-when-compile
@@ -206,21 +202,10 @@
   (find-file "~/.emacs.d/init.el"))
 (bind-key "C-c e" #'open-init-file)
 
-;; Bind undo
-(global-unset-key "\C-z")
-(global-set-key "\C-z" 'advertised-undo)
-
 ;; Bind copy/paste
 (cua-mode t)
 
-;; From: http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html
-(require 'ansi-color)
-(defun endless/colorize-compilation ()
-  "Colorize from `compilation-filter-start' to `point'."
-  (let ((inhibit-read-only t))
-    (ansi-color-apply-on-region compilation-filter-start (point))))
-
-(add-hook 'compilation-filter-hook #'endless/colorize-compilation)
+(add-hook 'compilation-filter-hook #'ansi-color-compilation-filter)
 
 ;; Ediff
 (setopt ediff-window-setup-function 'ediff-setup-windows-plain)
@@ -357,7 +342,6 @@ produce code that uses these same face definitions."
   :config
   (define-key
    minibuffer-local-completion-map (kbd "SPC") 'self-insert-command)
-  (org-roam-setup)
   (org-roam-db-autosync-mode))
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -468,9 +452,6 @@ produce code that uses these same face definitions."
 
 (use-package hyperbole
   :diminish
-  :custom
-  ; https://lists.gnu.org/archive/html/bug-hyperbole/2026-03/msg00001.html
-  (hywiki-default-mode nil)
   :config (hyperbole-mode 1))
 
 ;; indentation markers
@@ -684,28 +665,6 @@ produce code that uses these same face definitions."
     (disable-tabs)
     (setq tab-width 4)
     (setq c-basic-offset 4)))
-
-;; From: https://github.com/scturtle/dotfiles/blob/7fbd96f792099f8c4c496da5c7e98b1e0dadd310/doom_emacs/.doom.d/config.el#L63-L74
-(cl-defmethod lsp-clients-extract-signature-on-hover
-    (contents (_server-id (eql rust-analyzer)))
-  (let* ((value
-          (if lsp-use-plists
-              (plist-get contents :value)
-            (gethash "value" contents)))
-         (groups
-          (--partition-by (s-blank? it) (s-lines (s-trim value))))
-         (sig_group
-          (if (s-equals? "```rust" (car (-third-item groups)))
-              (-third-item groups)
-            (car groups)))
-         (sig
-          (-->
-           sig_group
-           (--drop-while (s-equals? "```rust" it) it)
-           (--take-while (not (s-equals? "```" it)) it)
-           (--map (s-trim it) it)
-           (s-join " " it))))
-    (lsp--render-element (concat "```rust\n" sig "\n```"))))
 
 ;; YAML
 (use-package yaml-mode)
