@@ -59,8 +59,9 @@
 (global-so-long-mode t)
 
 (unless (file-exists-p custom-file)
+  (make-directory (file-name-directory custom-file) t)
   (with-temp-buffer
-    (write-file custom-file)))
+    (write-region "" nil custom-file)))
 (load custom-file)
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
