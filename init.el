@@ -139,7 +139,7 @@
 
 (require 'package)
 (add-to-list
- 'package-archives '("melpa" . "http://melpa.org/packages/")
+ 'package-archives '("melpa" . "https://melpa.org/packages/")
  t)
 (package-initialize)
 (unless package-archive-contents
