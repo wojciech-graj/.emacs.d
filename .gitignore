@@ -3,6 +3,7 @@
 !.github/workflows/
 !.github/workflows/ci.yml
 !.gitignore
+!LICENSE
 !init.el
-!packages.txt
 !packages-extra.txt
+!packages.txt
